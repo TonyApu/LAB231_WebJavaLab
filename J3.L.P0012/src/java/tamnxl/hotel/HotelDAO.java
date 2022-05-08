@@ -1,0 +1,94 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package tamnxl.hotel;
+
+import java.io.Serializable;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import javax.naming.NamingException;
+import tamnxl.util.DBHelper;
+
+/**
+ *
+ * @author TamNXL
+ */
+public class HotelDAO implements Serializable {
+    public ArrayList<HotelDTO> searchHotel(String name, String area, String roomType, String checkInDate, String checkOutDate, String amount) throws SQLException, NamingException {
+        Connection con = null;
+        PreparedStatement stm = null;
+        ResultSet rs = null;
+        ArrayList<HotelDTO> listHotels = new ArrayList<>();
+        try {
+            con = DBHelper.makeConnection();
+            if (con != null) {
+                String sql = "SELECT h.hotelID, hotelName, a.areaName , hotelAddress, description, hotelEmail, hotline FROM Hotels h INNER JOIN Areas a ON h.areaCode=a.areaCode  WHERE hotelName LIKE ? AND a.areaName = ? AND hotelID = ANY( "
+                        + " SELECT  r.hotelID FROM Rooms r INNER JOIN RoomType rt ON r.typeID = rt.typeID WHERE typeName = ? AND roomID != ALL( "
+                        + " SELECT roomID FROM BookingDetails WHERE "
+                        + "(checkInDate BETWEEN ? AND ?) OR (checkOutDate BETWEEN ? AND ?) "
+                        + " ) AND roomStatus = 'Active' "
+                        + " GROUP BY r.hotelID "
+                        + " HAVING COUNT(r.hotelID)>=  ? "
+                        + " )"
+                        + " AND hotelStatus='Active'";
+                stm = con.prepareStatement(sql);
+                stm.setString(1, "%" + name + "%");
+                stm.setString(2, area);
+                stm.setString(3, roomType);
+                stm.setString(4, checkInDate);
+                stm.setString(5, checkOutDate);
+                stm.setString(6, checkInDate);
+                stm.setString(7, checkOutDate);
+                stm.setString(8, amount);
+                rs = stm.executeQuery();
+                while (rs.next()) {
+                    listHotels.add(new HotelDTO(rs.getString("hotelID"), rs.getString("hotelName"), rs.getString("areaName"), rs.getString("hotelAddress"), rs.getString("description"), rs.getString("hotelEmail"), rs.getString("hotline")));
+                }
+            }
+        } finally {
+            if (rs != null) {
+                rs.close();
+            }
+            if (stm != null) {
+                stm.close();
+            }
+            if (con != null) {
+                con.close();
+            }
+        }
+        return listHotels;
+    }
+    
+    public ArrayList<HotelDTO> getListHotel() throws NamingException, SQLException {
+        Connection con = null;
+        PreparedStatement stm = null;
+        ResultSet rs = null;
+        ArrayList<HotelDTO> listHotel = new ArrayList<>();
+        try {
+            con = DBHelper.makeConnection();
+            String sql = "SELECT hotelID, hotelName, areaCode, hotelAddress, description, hotelEmail, hotline, hotelStatus "
+                    + "FROM Hotels";
+            stm = con.prepareStatement(sql);
+            rs = stm.executeQuery();
+            while (rs.next()) {
+                listHotel.add(new HotelDTO(rs.getString("hotelID"), rs.getString("hotelName"), rs.getString("areaCode"), rs.getString("hotelAddress"), rs.getString("description"), rs.getString("hotelEmail"), rs.getString("hotline")));
+            }
+        } finally {
+            if (rs != null) {
+                rs.close();
+            }
+            if (stm != null) {
+                stm.close();
+            }
+            if (con != null) {
+                con.close();
+            }
+        }
+        return listHotel;
+    }
+}
