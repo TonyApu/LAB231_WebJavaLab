@@ -1,0 +1,16 @@
+try=login.jsp
+login=LoginServlet
+registerPage=register.jsp
+showPost=ShowPostServlet
+postPage=post.jsp
+viewPostDetail=ViewPostDetailServlet
+searchPage=search.jsp
+managePage=manage.jsp
+viewPostDetailPage=viewPostDetail.jsp
+search=LoadSearchPostServlet
+logout=LogoutServlet
+postArticle=PostArticleServlet
+register=RegisterServlet
+postComment=PostCommentServlet
+deletePost=DeletePostServlet
+activePost=ActivePostSerlvet
